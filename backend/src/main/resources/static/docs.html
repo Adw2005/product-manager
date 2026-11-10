@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentação da API RESTful — ProductManager (Java Puro)</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .docs-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+    .docs-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .badge-method {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      min-width: 65px;
+      text-align: center;
+    }
+    .get { background-color: #e0f2fe; color: #0369a1; }
+    .post { background-color: #dcfce7; color: #15803d; }
+    .put { background-color: #fef3c7; color: #b45309; }
+    .delete { background-color: #fee2e2; color: #b91c1c; }
+    .endpoint-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .endpoint-summary {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      background-color: #fafbfc;
+    }
+    .endpoint-path {
+      font-family: monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .endpoint-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+    .endpoint-body {
+      padding: 1.25rem 1.5rem;
+      font-size: 0.875rem;
+    }
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      font-size: 0.825rem;
+      margin: 0.5rem 0 1rem;
+    }
+  </style>
+</head>
+<body style="background-color: var(--bg-canvas);">
+
+  <div class="docs-container">
+    <div class="docs-header">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <h1 style="font-size: 1.75rem; font-weight: 700;">Documentação da API RESTful</h1>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">ProductManager — Backend em Java Puro (HttpServer + JDBC + MVC + DAO + Service)</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <a href="/DOCUMENTACAO_SISTEMA_E_API.pdf" download="DOCUMENTACAO_SISTEMA_E_API.pdf" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Baixar PDF
+          </a>
+          <a href="/" class="btn btn-outline">Voltar ao App</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Endpoint: Login -->
+    <div class="endpoint-card">
+      <div class="endpoint-summary">
+        <span class="badge-method post">POST</span>
+        <span class="endpoint-path">/api/auth/login</span>
+        <span class="endpoint-desc">Autenticação e geração de token</span>
+      </div>
+      <div class="endpoint-body">
+        <p><strong>Autenticação:</strong> Pública (não exige token)</p>
+        <p><strong>Corpo da requisição (JSON):</strong></p>
+        <pre>{
+  "username": "admin",
+  "password": "admin123"
+}</pre>
+        <p><strong>Resposta de Sucesso (200 OK):</strong></p>
+        <pre>{
+  "token": "YWRtaW46MTc5NDM2MDI2ODEzNA.oYD8...",
+  "username": "admin",
+  "role": "ADMIN"
+}</pre>
+      </div>
+    </div>
+
+    <!-- Endpoint: Listar Produtos -->
+    <div class="endpoint-card">
+      <div class="endpoint-summary">
+        <span class="badge-method get">GET</span>
+        <span class="endpoint-path">/api/products</span>
+        <span class="endpoint-desc">Listar todos os produtos ou buscar por nome</span>
+      </div>
+      <div class="endpoint-body">
+        <p><strong>Autenticação:</strong> Bearer Token (Header: <code>Authorization: Bearer &lt;token&gt;</code>)</p>
+        <p><strong>Parâmetros opcionais:</strong> <code>?search=termo</code> (filtra produtos pelo nome)</p>
+        <p><strong>Resposta de Sucesso (200 OK):</strong></p>
+        <pre>[
+  {
+    "id": 1,
+    "name": "Notebook Ultra 15",
+    "description": "Notebook para uso profissional, 16GB RAM, SSD 512GB",
+    "category": "Eletrônicos",
+    "price": 4599.90,
+    "stock": 12,
+    "createdAt": "2026-11-09T21:53:24",
+    "updatedAt": "2026-11-09T21:53:24"
+  }
+]</pre>
+      </div>
+    </div>
+
+    <!-- Endpoint: Consultar por ID -->
+    <div class="endpoint-card">
+      <div class="endpoint-summary">
+        <span class="badge-method get">GET</span>
+        <span class="endpoint-path">/api/products/{id}</span>
+        <span class="endpoint-desc">Consultar produto específico por ID</span>
+      </div>
+      <div class="endpoint-body">
+        <p><strong>Autenticação:</strong> Bearer Token</p>
+        <p><strong>Resposta de Sucesso (200 OK):</strong> Objeto JSON do produto.</p>
+        <p><strong>Resposta de Erro (404 Not Found):</strong> Produto não localizado.</p>
+      </div>
+    </div>
+
+    <!-- Endpoint: Cadastrar Produto -->
+    <div class="endpoint-card">
+      <div class="endpoint-summary">
+        <span class="badge-method post">POST</span>
+        <span class="endpoint-path">/api/products</span>
+        <span class="endpoint-desc">Cadastrar novo produto</span>
+      </div>
+      <div class="endpoint-body">
+        <p><strong>Autenticação:</strong> Bearer Token</p>
+        <p><strong>Corpo da requisição (JSON):</strong></p>
+        <pre>{
+  "name": "Monitor 27\" UltraWide",
+  "description": "Monitor curvo 27 polegadas, resolução 2K",
+  "category": "Eletrônicos",
+  "price": 1899.00,
+  "stock": 8
+}</pre>
+        <p><strong>Resposta de Sucesso (201 Created):</strong> Objeto do produto salvo com o <code>id</code> gerado pelo MySQL.</p>
+        <p><strong>Resposta de Validação (400 Bad Request):</strong> Mapa de campos com erros de validação.</p>
+      </div>
+    </div>
+
+    <!-- Endpoint: Atualizar Produto -->
+    <div class="endpoint-card">
+      <div class="endpoint-summary">
+        <span class="badge-method put">PUT</span>
+        <span class="endpoint-path">/api/products/{id}</span>
+        <span class="endpoint-desc">Atualizar produto existente</span>
+      </div>
+      <div class="endpoint-body">
+        <p><strong>Autenticação:</strong> Bearer Token</p>
+        <p><strong>Corpo da requisição (JSON):</strong> Dados atualizados do produto.</p>
+        <p><strong>Resposta de Sucesso (200 OK):</strong> Objeto atualizado.</p>
+      </div>
+    </div>
+
+    <!-- Endpoint: Excluir Produto -->
+    <div class="endpoint-card">
+      <div class="endpoint-summary">
+        <span class="badge-method delete">DELETE</span>
+        <span class="endpoint-path">/api/products/{id}</span>
+        <span class="endpoint-desc">Excluir produto</span>
+      </div>
+      <div class="endpoint-body">
+        <p><strong>Autenticação:</strong> Bearer Token</p>
+        <p><strong>Resposta de Sucesso (204 No Content):</strong> Sem corpo (exclusão confirmada).</p>
+        <p><strong>Resposta de Erro (404 Not Found):</strong> ID não existente.</p>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
+

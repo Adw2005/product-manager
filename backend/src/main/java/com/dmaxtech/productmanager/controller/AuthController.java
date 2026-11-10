@@ -2,55 +2,60 @@ package com.dmaxtech.productmanager.controller;
 
 import com.dmaxtech.productmanager.dto.LoginRequest;
 import com.dmaxtech.productmanager.dto.LoginResponse;
-import com.dmaxtech.productmanager.model.User;
-import com.dmaxtech.productmanager.repository.UserRepository;
-import com.dmaxtech.productmanager.security.JwtUtil;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.*;
+import com.dmaxtech.productmanager.exception.UnauthorizedException;
+import com.dmaxtech.productmanager.exception.ValidationException;
+import com.dmaxtech.productmanager.service.AuthService;
+import com.dmaxtech.productmanager.util.HttpUtil;
+import com.dmaxtech.productmanager.util.JsonUtil;
+import com.google.gson.JsonSyntaxException;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
-import java.util.Map;
+import java.io.IOException;
 
 /**
- * CONTROLLER responsavel pela autenticacao.
- * Rota publica: nao exige token (ver SecurityConfig).
+ * CONTROLLER (Camada C do MVC)
+ * Endpoint de autenticação do sistema (/api/auth/login).
+ * Implementado com o HttpServer nativo do Java SE.
  */
-@RestController
-@RequestMapping("/api/auth")
-public class AuthController {
+public class AuthController implements HttpHandler {
 
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final JwtUtil jwtUtil;
+    private final AuthService authService;
 
-    @Autowired
-    public AuthController(AuthenticationManager authenticationManager,
-                           UserRepository userRepository,
-                           JwtUtil jwtUtil) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.jwtUtil = jwtUtil;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-            );
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Usuario ou senha invalidos"));
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        if (HttpUtil.handlePreflight(exchange)) {
+            return;
         }
 
-        User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
-        String token = jwtUtil.generateToken(user.getUsername());
+        String method = exchange.getRequestMethod().toUpperCase();
 
-        return ResponseEntity.ok(new LoginResponse(token, user.getUsername(), user.getRole()));
+        if ("POST".equals(method)) {
+            handleLogin(exchange);
+        } else {
+            HttpUtil.sendError(exchange, 405, "Método Não Permitido", "Apenas requisições POST são suportadas neste endpoint.");
+        }
+    }
+
+    private void handleLogin(HttpExchange exchange) throws IOException {
+        try {
+            String body = HttpUtil.readRequestBody(exchange);
+            LoginRequest request = JsonUtil.fromJson(body, LoginRequest.class);
+
+            LoginResponse response = authService.login(request);
+            HttpUtil.sendJsonResponse(exchange, 200, response);
+        } catch (ValidationException e) {
+            HttpUtil.sendError(exchange, 400, "Dados Inválidos", e.getMessage(), e.getErrors());
+        } catch (UnauthorizedException e) {
+            HttpUtil.sendError(exchange, 401, "Não Autorizado", e.getMessage());
+        } catch (JsonSyntaxException e) {
+            HttpUtil.sendError(exchange, 400, "JSON Inválido", "O corpo da requisição não é um JSON válido.");
+        } catch (Exception e) {
+            HttpUtil.sendError(exchange, 500, "Erro Interno", e.getMessage());
+        }
     }
 }

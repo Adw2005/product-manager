@@ -1,63 +1,23 @@
 package com.dmaxtech.productmanager.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * MODEL (camada M do MVC)
+ * MODEL (Camada M do MVC)
  * Representa a entidade Produto persistida na tabela "products" (MySQL).
+ * Implementado como Java POJO puro, sem anotações de frameworks.
  */
-@Entity
-@Table(name = "products")
 public class Product {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @NotBlank(message = "O nome do produto e obrigatorio")
-    @Column(nullable = false, length = 120)
     private String name;
-
-    @Column(length = 500)
     private String description;
-
-    @NotBlank(message = "A categoria e obrigatoria")
-    @Column(nullable = false, length = 60)
     private String category;
-
-    @NotNull(message = "O preco e obrigatorio")
-    @DecimalMin(value = "0.0", inclusive = true, message = "O preco nao pode ser negativo")
-    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
-
-    @NotNull(message = "O estoque e obrigatorio")
-    @Min(value = 0, message = "O estoque nao pode ser negativo")
-    @Column(nullable = false)
     private Integer stock;
-
-    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public Product() {
     }
@@ -68,6 +28,18 @@ public class Product {
         this.category = category;
         this.price = price;
         this.stock = stock;
+    }
+
+    public Product(Long id, String name, String description, String category, BigDecimal price, Integer stock,
+                   LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.category = category;
+        this.price = price;
+        this.stock = stock;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     // Getters e Setters
@@ -124,7 +96,26 @@ public class Product {
         return createdAt;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", category='" + category + '\'' +
+                ", price=" + price +
+                ", stock=" + stock +
+                '}';
     }
 }
